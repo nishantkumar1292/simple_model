@@ -1,0 +1,124 @@
+# A config file designed to fail in every conceivable way
+# WARNING: This is intentionally broken for testing purposes
+
+model: ensemble
+strategy: weighted
+hyperparameters:
+  weights: [0.1, 0.2, 0.7]
+  
+base_models:
+  # Model 1: XGBoost
+  - model: xgboost
+    train: true
+    hyperparameters:
+      n_estimators: 100
+      max_depth: 6
+      learning_rate: 0.1
+      subsample: 1.0
+      colsample_bytree: 1.0
+      gamma: 0.0
+      reg_alpha: 0.0
+      reg_lambda: 1.0
+      
+  # Model 2: Random Forest
+  - model: random_forest
+    train: true
+    hyperparameters:
+      n_estimators: 100
+      max_depth: 5
+      min_samples_split: 2
+      min_samples_leaf: 1
+      max_features: "sqrt"
+      bootstrap: true
+      n_jobs: -1
+      random_state: 42
+      
+  # Model 3: Nested ensemble without strategy (required!)
+  - model: ensemble
+    strategy: mean
+    base_models:
+      - model: xgboost
+        train: true
+      - model: random_forest
+        train: true
+        
+  # Model 4: Another nested ensemble with trainable strategy but broken hyperparameters
+  - model: ensemble
+    strategy: xgboost  # trainable strategy
+    hyperparameters:
+      n_estimators: 900
+      max_depth: 11
+      learning_rate: 0.2
+      subsample: 0.5
+      colsample_bytree: 0.5
+      gamma: 0.0
+      reg_alpha: 0.0
+      reg_lambda: 1.0
+    base_models:
+      # Deeply nested ensemble of ensembles
+      - model: ensemble
+        strategy: weighted
+        hyperparameters:
+          weights: [1.0]
+        base_models:
+          - model: ensemble
+            strategy: random_forest
+            hyperparameters:
+              max_depth: 5
+            base_models:
+              - model: xgboost
+                train: true
+              - model: random_forest
+                train: true
+                
+  # Model 5: train=false without model_path
+  - model: xgboost
+    train: true
+    
+  # Model 7: Weighted strategy with completely wrong weights
+  - model: ensemble
+    strategy: weighted
+    hyperparameters:
+      weights: [0.5, 0.5]
+    base_models:
+      - model: xgboost
+        train: true
+        hyperparameters:
+          max_depth: 5
+      - model: random_forest
+        train: true
+        hyperparameters:
+          bootstrap: true
+          
+  # Model 8:
+  - model: ensemble
+    strategy: median
+    base_models:
+      - model: ensemble
+        strategy: mode
+        base_models:
+          - model: ensemble
+            strategy: weighted
+            hyperparameters:
+              weights: [1.0, 0.0, 0.0]
+            base_models:
+              - model: xgboost
+                hyperparameters:
+                  n_estimators: 100
+                  max_depth: 6
+                  learning_rate: 0.1
+                  subsample: 1.0
+                  colsample_bytree: 1.0
+                  gamma: 0.0
+                  reg_alpha: 0.0
+                  reg_lambda: 1.0
+              - model: random_forest
+                hyperparameters:
+                  n_estimators: 100
+                  max_depth: 6
+                  learning_rate: 0.1
+                  subsample: 1.0
+                  colsample_bytree: 1.0
+                  gamma: 0.0
+                  reg_alpha: 0.0
+                  reg_lambda: 1.0
